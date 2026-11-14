@@ -1,6 +1,6 @@
 // Offline support: always try the network first (so updates show up right away),
 // and fall back to the cached copy when there's no connection.
-const CACHE = 'bartender-v1';
+const CACHE = 'bartender-v2';
 const ASSETS = [
   './', 'index.html', 'styles.css', 'data.js', 'app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
@@ -22,7 +22,7 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' })   // revalidate with the server so updates show up right away
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));

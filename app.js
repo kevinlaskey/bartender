@@ -11,6 +11,38 @@
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.2-4.4-9.2-8.8C1.5 8.7 3.4 5.5 6.6 5.5c2.1 0 3.6 1.2 4.4 2.6h2c.8-1.4 2.3-2.6 4.4-2.6 3.2 0 5.1 3.2 3.8 6.2-2 4.4-9.2 8.8-9.2 8.8z" stroke-linejoin="round"/></svg>';
 
+  // ---------- amount scaling (1×, 2×…) ----------
+  const FRAC = { '¼': 0.25, '½': 0.5, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3 };
+  function parseNum(t) {
+    t = t.trim();
+    let m;
+    if ((m = t.match(/^(\d+)\s+(\d+)\/(\d+)$/))) return +m[1] + m[2] / m[3];
+    if ((m = t.match(/^(\d+)\/(\d+)$/))) return m[1] / m[2];
+    if ((m = t.match(/^(\d*)([¼½¾⅓⅔])$/))) return (+m[1] || 0) + FRAC[m[2]];
+    return parseFloat(t);
+  }
+  function fmtNum(n) {
+    const whole = Math.floor(n + 1e-9), rest = n - whole;
+    for (const [g, v] of Object.entries(FRAC)) {
+      if (Math.abs(rest - v) < 0.02) return (whole || '') + g;
+    }
+    if (rest < 0.02) return String(whole);
+    if (rest > 0.98) return String(whole + 1);
+    return String(Math.round(n * 100) / 100);
+  }
+  // Multiplies every quantity in an amount like "1½ oz", "6–8 leaves", ".75 oz".
+  // Leaves ratios such as "2:1 honey:water" alone.
+  const NUM_RE = /(?<![\d:.\/])(\d+\s+\d+\/\d+|\d+\/\d+|\d*\.\d+|\d+[¼½¾⅓⅔]?|[¼½¾⅓⅔])(?![\d:\/])/g;
+  function scaleAmt(amt, k) {
+    if (k === 1 || !amt) return amt;
+    return amt
+      .replace(NUM_RE, (t) => {
+        const n = parseNum(t);
+        return isNaN(n) ? t : fmtNum(n * k);
+      })
+      .replace(/\b(\d\S*) (dash|sugar cube|egg white)\b(?!e?s)/g, (m, n, w) => (n === '1' ? m : `${n} ${w}${w === 'dash' ? 'es' : 's'}`));
+  }
+
   // ---------- state ----------
   function normalize(s) {
     s = s || {};
@@ -20,13 +52,14 @@
       notes: s.notes && typeof s.notes === 'object' ? s.notes : {},
       custom: Array.isArray(s.custom) ? s.custom : [],
       customIngredients: Array.isArray(s.customIngredients) ? s.customIngredients : [],
+      scale: [1, 2, 3, 4].includes(s.scale) ? s.scale : 1,
     };
   }
   function serialize() {
     return {
       app: 'bartender', v: 1, savedAt: new Date().toISOString(),
       have: [...state.have], favs: [...state.favs], notes: state.notes,
-      custom: state.custom, customIngredients: state.customIngredients,
+      custom: state.custom, customIngredients: state.customIngredients, scale: state.scale,
     };
   }
   function load() {
@@ -246,11 +279,13 @@
       <div class="d-meta">${esc(d.glass ? d.glass + ' glass' : '')}
         ${d.vibe.length ? `<div class="chips wrap">${d.vibe.map((v) => `<span class="chip">${cap(v)}</span>`).join('')}</div>` : ''}</div>
       <div class="status ${m.length ? 'warn' : 'ok'}">${m.length ? `Missing ${m.map((l) => esc(lineLabel(l, true))).join(', ')}` : 'You have everything ✓'}</div>
+      <div class="scale-row"><span>Amounts</span><div class="seg">${[1, 2, 3, 4].map((k) =>
+        `<button class="${state.scale === k ? 'on' : ''}" data-scale="${k}">${k}×</button>`).join('')}</div></div>
       <ul class="ings">${d.lines.map((l) => {
         const h = hasLine(l);
         const cls = h ? 'have' : l.opt ? 'opt' : 'miss';
         return `<li class="${cls}"><span class="mark">${h ? '✓' : l.opt ? '–' : '✕'}</span>
-          <span class="amt">${esc(l.amt)}</span>
+          <span class="amt">${esc(scaleAmt(l.amt, state.scale))}</span>
           <span class="nm">${esc(lineLabel(l))}${l.opt ? ' <em>optional</em>' : ''}</span>
           ${!h ? `<button class="mini" data-got="${esc(l.ids[0])}">Have it</button>` : ''}</li>`;
       }).join('')}</ul>
@@ -425,7 +460,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-close],[data-fav],[data-got],[data-ing],[data-vibe],[data-fvibe],[data-act],[data-tab],[data-edit],[data-del],[data-open]');
+    const t = e.target.closest('[data-close],[data-fav],[data-got],[data-ing],[data-scale],[data-vibe],[data-fvibe],[data-act],[data-tab],[data-edit],[data-del],[data-open]');
     if (!t) return;
     const ds = t.dataset;
 
@@ -438,6 +473,10 @@
       return openDrink(ui.sheet.id, { pool: ui.sheet.pool });
     }
     if (ds.ing) return toggleIng(ds.ing);
+    if (ds.scale) {
+      state.scale = +ds.scale; save();
+      return openDrink(ui.sheet.id, { pool: ui.sheet.pool });
+    }
     if (ds.vibe) { ui.vibe = ds.vibe; return render(); }
     if (ds.fvibe) return t.classList.toggle('on');
     if (ds.tab) {

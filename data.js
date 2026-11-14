@@ -32,7 +32,7 @@ const INGREDIENTS = [
   { id: 'cachaca', name: 'Cachaça', cat: 'Spirits' },
 
   // Liqueurs & aperitifs
-  { id: 'triple_sec', name: 'Cointreau / triple sec', s: 'Cointreau', cat: 'Liqueurs & Aperitifs' },
+  { id: 'triple_sec', name: 'Orange liqueur (Cointreau, Grand Marnier, triple sec)', s: 'Orange liqueur', cat: 'Liqueurs & Aperitifs' },
   { id: 'sweet_vermouth', name: 'Sweet vermouth', cat: 'Liqueurs & Aperitifs' },
   { id: 'dry_vermouth', name: 'Dry vermouth', cat: 'Liqueurs & Aperitifs' },
   { id: 'campari', name: 'Campari', cat: 'Liqueurs & Aperitifs' },
@@ -129,6 +129,9 @@ const DRINKS = [
   { n: 'Cosmopolitan', g: 'Coupe or martini', v: ['sour', 'fruity'],
     i: [['vodka', '1½ oz'], ['triple_sec', '½ oz'], ['lime', '½ oz'], ['cranberry', '1 oz']],
     m: 'Shake hard with ice and strain into a chilled glass. Garnish with an orange twist.' },
+  { n: 'Elderflower Cosmo', g: 'Coupe or martini', v: ['fruity', 'sweet'],
+    i: [['vodka', '1½ oz'], ['triple_sec', '¾ oz'], ['elderflower', '½ oz'], ['cranberry', '1½ oz']],
+    m: 'Shake hard with ice and strain into a chilled glass. Garnish with an orange or lemon twist.' },
   { n: 'Lemon Drop', g: 'Coupe or martini', v: ['sour', 'sweet'],
     i: [['vodka', '2 oz'], ['triple_sec', '½ oz'], ['lemon', '1 oz'], ['simple', '½ oz']],
     m: 'Shake with ice and strain into a chilled, sugar-rimmed glass.' },

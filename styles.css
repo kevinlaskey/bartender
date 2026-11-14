@@ -204,6 +204,16 @@ h2.section .count { color: var(--faint); }
 .status.ok { background: rgba(134, 201, 143, .12); color: var(--ok); }
 .status.warn { background: rgba(235, 143, 95, .12); color: var(--warn); }
 
+.scale-row {
+  display: flex; align-items: center; justify-content: space-between; margin: 4px 0 2px;
+  color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+}
+.seg { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button {
+  border: 0; background: none; color: var(--muted); font-weight: 700; font-size: 14px;
+  padding: 6px 12px; border-radius: 7px; letter-spacing: 0;
+}
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
 .ings { list-style: none; margin: 0; padding: 0; }
 .ings li {
   display: flex; align-items: center; gap: 10px;

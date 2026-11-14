@@ -9,6 +9,7 @@ Heart the ones she loves, and add notes like "extra lime, no salt."
 - **Drinks** – what you can make right now, then drinks you're missing just one thing for. Filter by vibe (sour, sweet, fizzy, creamy…) or search.
 - **Make me a cocktail** – random pick from what you can make. Favorites come up 3× more often.
 - **Favorites** – her hearted drinks, split into "can make now" vs "need something." Has its own random-pick button.
+- **Amounts 1× / 2× / 3× / 4×** – a switch on every recipe that multiplies the amounts. It remembers your choice, so set it to 2× once and every drink shows doubled amounts.
 - **Notes** on any drink ("she likes it less sweet").
 - **Your own recipes** (More tab). Type any ingredient. New ones show up under "Other" in My Bar.
 - Works offline once it has loaded.
