@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15100c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bartender">
+  <meta name="description" content="Check off what's in your bar and see which cocktails you can make.">
+  <title>Bartender</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <h1 id="title">Drinks</h1>
+    <span id="sub"></span>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="drinks">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16l-7 8v6h3v2H8v-2h3v-6L4 4zm4.3 2 3.7 4.2L15.7 6H8.3z"/></svg>
+      <span>Drinks</span>
+    </button>
+    <button data-tab="favorites">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 3 5 6.5 5c2 0 3.6 1.1 4.5 2.6h2C13.9 6.1 15.5 5 17.5 5 21 5 23 8.6 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg>
+      <span>Favorites</span>
+    </button>
+    <button data-tab="bar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v3l-1 1v2.2c2.3.8 4 3 4 5.6V21a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7.2c0-2.6 1.7-4.8 4-5.6V6L9 5V2zm-1 12v6h8v-6H8z"/></svg>
+      <span>My Bar</span>
+    </button>
+    <button data-tab="more">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
+      <span>More</span>
+    </button>
+  </nav>
+
+  <div id="sheet" class="sheet hidden" role="dialog" aria-modal="true">
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel">
+      <div class="sheet-grip" data-close></div>
+      <button class="sheet-x" data-close aria-label="Close">✕</button>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
