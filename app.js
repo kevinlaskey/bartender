@@ -53,13 +53,14 @@
       custom: Array.isArray(s.custom) ? s.custom : [],
       customIngredients: Array.isArray(s.customIngredients) ? s.customIngredients : [],
       scale: [1, 2, 3, 4].includes(s.scale) ? s.scale : 1,
+      showAdv: !!s.showAdv,
     };
   }
   function serialize() {
     return {
       app: 'bartender', v: 1, savedAt: new Date().toISOString(),
       have: [...state.have], favs: [...state.favs], notes: state.notes,
-      custom: state.custom, customIngredients: state.customIngredients, scale: state.scale,
+      custom: state.custom, customIngredients: state.customIngredients, scale: state.scale, showAdv: state.showAdv,
     };
   }
   function load() {
@@ -229,9 +230,16 @@
             `<button class="pill buy" data-ing="${esc(id)}">${esc(ingName(id))}<span class="n">+${n}</span></button>`).join('')}</div>`;
       }
     }
-    const cats = [...CATEGORIES];
-    for (const cat of cats) {
-      const items = Object.values(ING).filter((x) => x.cat === cat && (!q || x.name.toLowerCase().includes(q)));
+    // Specialty bottles stay hidden unless asked for, searched for, or already checked.
+    const visible = (x) => q ? x.name.toLowerCase().includes(q) : (!x.adv || state.showAdv || state.have.has(x.id));
+    const hiddenAdv = Object.values(ING).filter((x) => x.adv && !state.have.has(x.id)).length;
+    if (!q && hiddenAdv) {
+      html += `<button class="link" data-act="toggle-adv">${state.showAdv
+        ? 'Hide specialty ingredients'
+        : `Show ${hiddenAdv} specialty ingredients <span style="font-weight:400">(absinthe, Lillet, Chartreuse…)</span>`}</button>`;
+    }
+    for (const cat of CATEGORIES) {
+      const items = Object.values(ING).filter((x) => x.cat === cat && visible(x));
       if (!items.length) continue;
       const n = items.filter((x) => state.have.has(x.id)).length;
       html += `<h2 class="section"><span>${esc(cat)}</span><span class="count">${n ? n + ' ✓' : ''}</span></h2>
@@ -500,6 +508,10 @@
       case 'showall': ui.showAll = true; $('#results').innerHTML = drinkResults(); return;
       case 'clear-bar':
         if (confirm('Uncheck every ingredient in your bar?')) { state.have.clear(); save(); render(); }
+        return;
+      case 'toggle-adv':
+        state.showAdv = !state.showAdv; save();
+        $('#bar-results').innerHTML = barResults();
         return;
       case 'new-drink': return openForm();
       case 'add-row': $('#f-ings').insertAdjacentHTML('beforeend', formRow()); $$('.f-ing').pop().focus(); return;
