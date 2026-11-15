@@ -6,7 +6,8 @@ Heart the ones she loves, and add notes like "extra lime, no salt."
 ## What it does
 
 - **My Bar** – tap ingredients you have. "Worth buying next" shows which single bottle would unlock the most new drinks. Specialty bottles (absinthe, Lillet, Bénédictine…) stay hidden behind a "Show specialty ingredients" button, and searching finds them either way.
-- **140+ recipes**: classics, tiki, spritzes, sours, fall and winter warmers, and more.
+- **165+ recipes**: classics, modern bar classics (Billionaire, Penicillin, Paper Plane…), tiki, spritzes, sours, fall and winter warmers, and more. A "Modern classics" filter shows the cocktail-bar favorites.
+- **If you like this, try…** – each recipe suggests the most similar drinks and shows whether you can make them.
 - **Drinks** – what you can make right now, then drinks you're missing just one thing for. Filter by vibe (sour, sweet, fizzy, creamy…) or search.
 - **Make me a cocktail** – random pick from what you can make. Favorites come up 3× more often.
 - **Favorites** – her hearted drinks, split into "can make now" vs "need something." Has its own random-pick button.

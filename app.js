@@ -84,9 +84,14 @@
   const ingName = (id) => ING[id]?.name || id;
   const shortName = (id) => ING[id]?.s || ING[id]?.name || id;
 
+  const MODERN = new Set(typeof MODERN_CLASSICS !== 'undefined' ? MODERN_CLASSICS : []);
+  const vibeLabel = (v) => (v === 'modern' ? 'Modern classics' : cap(v));
+
   function toDrink(r, custom) {
+    const vibe = [...(r.v || [])];
+    if (!custom && MODERN.has(r.n) && !vibe.includes('modern')) vibe.unshift('modern');
     return {
-      id: r.id || slug(r.n), name: r.n, glass: r.g || '', vibe: r.v || [], method: r.m || '', custom,
+      id: r.id || slug(r.n), name: r.n, glass: r.g || '', vibe, method: r.m || '', custom,
       lines: (r.i || []).map(([ids, amt, opt]) => ({ ids: String(ids).split('|'), amt: amt || '', opt: !!opt })),
     };
   }
@@ -152,7 +157,7 @@
         <small>A random pick from what you can make right now — favorites come up more often</small></button>
       <div class="searchbar"><input id="q" type="search" placeholder="Search drinks or ingredients" value="${esc(ui.q)}" autocomplete="off"></div>
       <div class="chips">${['all', ...VIBES].map((v) =>
-        `<button class="chip ${ui.vibe === v ? 'on' : ''}" data-vibe="${v}">${v === 'all' ? 'All' : cap(v)}</button>`).join('')}</div>
+        `<button class="chip ${ui.vibe === v ? 'on' : ''}" data-vibe="${v}">${v === 'all' ? 'All' : vibeLabel(v)}</button>`).join('')}</div>
       <div id="results">${drinkResults()}</div>`;
   }
 
@@ -272,6 +277,42 @@
       </div>`;
   }
 
+  // ---------- "if you like this, try…" ----------
+  const reqIds = (d) => new Set(d.lines.filter((l) => !l.opt).flatMap((l) => l.ids));
+  function similarTo(d, n = 4) {
+    const A = reqIds(d);
+    const va = new Set(d.vibe.filter((v) => v !== 'modern'));   // match on flavor, not era
+    return allDrinks()
+      .filter((x) => x.id !== d.id)
+      .map((x) => {
+        const B = reqIds(x);
+        let inter = 0;
+        for (const id of A) if (B.has(id)) inter++;
+        const union = A.size + B.size - inter;
+        const shared = x.vibe.filter((v) => va.has(v)).length;
+        // Mostly about shared ingredients, nudged by matching flavor; drinks you can make now and favorites get a small boost.
+        const score = (union ? inter / union : 0) * 3 + shared * 0.4
+          + (missingOf(x).length ? 0 : 0.3) + (state.favs.has(x.id) ? 0.2 : 0);
+        return { x, score };
+      })
+      .filter((o) => o.score > 0.9)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, n)
+      .map((o) => o.x);
+  }
+
+  function similarHtml(d) {
+    const sims = similarTo(d);
+    if (!sims.length) return '';
+    return `<h3>If you like this, try</h3><div class="similar">${sims.map((x) => {
+      const m = missingOf(x);
+      return `<button class="sim" data-open="${esc(x.id)}">
+        <span class="sim-name">${esc(x.name)}${state.favs.has(x.id) ? ' <span class="sim-fav">♥</span>' : ''}</span>
+        <span class="${m.length ? 'sim-need' : 'sim-ok'}">${m.length ? 'Need ' + m.map((l) => esc(lineLabel(l, true))).join(', ') : 'Can make ✓'}</span>
+      </button>`;
+    }).join('')}</div>`;
+  }
+
   // ---------- drink detail sheet ----------
   function openDrink(id, opts = {}) {
     const d = findDrink(id);
@@ -285,7 +326,7 @@
         <button class="heart big ${fav ? 'on' : ''}" data-fav="${esc(d.id)}" aria-label="Favorite">${HEART}</button>
       </div>
       <div class="d-meta">${esc(d.glass ? d.glass + ' glass' : '')}
-        ${d.vibe.length ? `<div class="chips wrap">${d.vibe.map((v) => `<span class="chip">${cap(v)}</span>`).join('')}</div>` : ''}</div>
+        ${d.vibe.length ? `<div class="chips wrap">${d.vibe.map((v) => `<span class="chip">${vibeLabel(v)}</span>`).join('')}</div>` : ''}</div>
       <div class="status ${m.length ? 'warn' : 'ok'}">${m.length ? `Missing ${m.map((l) => esc(lineLabel(l, true))).join(', ')}` : 'You have everything ✓'}</div>
       <div class="scale-row"><span>Amounts</span><div class="seg">${[1, 2, 3, 4].map((k) =>
         `<button class="${state.scale === k ? 'on' : ''}" data-scale="${k}">${k}×</button>`).join('')}</div></div>
@@ -298,6 +339,7 @@
           ${!h ? `<button class="mini" data-got="${esc(l.ids[0])}">Have it</button>` : ''}</li>`;
       }).join('')}</ul>
       ${d.method ? `<h3>How to make it</h3><p class="method">${esc(d.method)}</p>` : ''}
+      ${similarHtml(d)}
       <h3>Notes</h3>
       <textarea id="note" data-note="${esc(d.id)}" placeholder="e.g. She likes it with a little extra lime">${esc(state.notes[d.id] || '')}</textarea>
       <div class="saved" id="note-saved"></div>
@@ -340,7 +382,7 @@
       <label class="field">Name<input id="f-name" type="text" value="${esc(r?.n || '')}" placeholder="e.g. Sarah’s Spicy Marg"></label>
       <label class="field">Glass<input id="f-glass" type="text" value="${esc(r?.g || '')}" placeholder="Rocks, coupe, highball…"></label>
       <div class="lbl">Vibe</div>
-      <div class="chips wrap">${VIBES.map((v) => `<button type="button" class="chip ${r?.v?.includes(v) ? 'on' : ''}" data-fvibe="${v}">${cap(v)}</button>`).join('')}</div>
+      <div class="chips wrap">${VIBES.map((v) => `<button type="button" class="chip ${r?.v?.includes(v) ? 'on' : ''}" data-fvibe="${v}">${vibeLabel(v)}</button>`).join('')}</div>
       <div class="lbl">Ingredients <span style="font-weight:400;color:var(--faint)">— pick from the list or type something new</span></div>
       <div id="f-ings">${rows}</div>
       <button type="button" class="btn ghost block" data-act="add-row">+ Another ingredient</button>
